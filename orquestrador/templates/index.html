@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orquestrador de Automação</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>   
+    <div class="sidebar">
+        <ul>
+            <li><a href="{% url 'index' %}">Dashboard</a></li>
+            <li><a href="{% url 'debug' %}">Depurar Automação</a></li>
+            <li><a href="{% url 'robots' %}">Robôs</a></li>
+            <li><a href="{% url 'logs' %}">Logs</a></li>
+        </ul>
+    </div>    
+    <div class="main-content">
+        <header>
+            <input type="search" placeholder="Buscar...">
+            <div class="user-profile">
+                Perfil
+                <form id="logout-form" action="{% url 'logout' %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-door-open" viewBox="0 0 16 16">
+                            <path d="M8.5 10c-.276 0-.5-.448-.5-1s.224-1 .5-1 .5.448.5 1-.224 1-.5 1"/>
+                            <path d="M10.828.122A.5.5 0 0 1 11 .5V1h.5A1.5 1.5 0 0 1 13 2.5V15h1.5a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1H3V1.5a.5.5 0 0 1 .43-.495l7-1a.5.5 0 0 1 .398.117M11.5 2H11v13h1V2.5a.5.5 0 0 0-.5-.5M4 1.934V15h6V1.077z"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </header>        
+        <div class="dashboard">
+            <h2>Lista de Automações</h2>
+            <div id="automacoes-list"></div>
+            <button id="ver-logs" style="display: none;">Ver Logs</button>
+            <div id="logs" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Função para obter o token CSRF do cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+    
+        // Configuração do token CSRF nas requisições AJAX
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                    // Apenas adicione o token CSRF para requisições relativas ao mesmo domínio
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        $(document).ready(function() {
+    function carregarAutomacoes() {
+        $.get('{% url "robots_data" %}', function(data) {
+            let lista = $('#automacoes-list');
+            lista.empty();
+            $.each(data, function(nome, detalhes) {  // Assumindo que 'nome' é um identificador único
+                let horario = detalhes.horario ? detalhes.horario : 'Não especificado';
+                lista.append(`
+                    <div style="background-color: #33334a; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="color: #fff;">${nome}</strong>: ${detalhes.script} (${horario})
+                        <div>
+                            <button class="pause-btn" data-id="${nome}">Pausar</button>
+                            <button class="resume-btn" data-id="${nome}">Retomar</button>
+                            <button class="remove-btn" data-id="${nome}">Remover</button>
+                            <button class="executar-btn" data-id="${nome}">Executar</button>
+                        </div>
+                    </div>
+                `);
+            });
+
+            // Vincula eventos aos botões
+            $('.pause-btn').click(function() {
+                let id = $(this).data('id');
+                $.ajax({
+                    url: `/automacoes/${id}/pause`,
+                    type: 'POST',
+                    success: function(response) {
+                        alert(response.status);
+                        carregarAutomacoes();
+                    }
+                });
+            });
+
+            $('.resume-btn').click(function() {
+                let id = $(this).data('id');
+                $.ajax({
+                    url: `/automacoes/${id}/resume`,
+                    type: 'POST',
+                    success: function(response) {
+                        alert(response.status);
+                        carregarAutomacoes();
+                    }
+                });
+            });
+
+            
+            $('.remove-btn').click(function() {
+                let id = $(this).data('id');
+                $.ajax({
+                    url: `/automacoes/${id}/remove`,
+                    type: 'DELETE',
+                    success: function(response) {
+                        alert(response.status);
+                        carregarAutomacoes();
+                    }
+                });
+            });
+
+
+            $('.executar-btn').click(function() {
+                let id = $(this).data('id');
+                fetch(`/executar_automacao/${id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken, 
+                    },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.mensagem) {
+                        alert(data.mensagem);
+                    } else {
+                        alert('Erro ao processar a resposta do servidor.');
+                    }
+                    carregarAutomacoes(); // Atualiza a lista de automações
+                })
+                .catch(error => {
+                    console.error('Erro ao executar automação:', error);
+                    alert('Erro ao executar automação: ' + error);
+                });
+            });
+        });
+    }
+
+    carregarAutomacoes();  // Carrega as automações ao carregar a página
+});          
+    </script>    
+    
+    <div id="add-automation-btn">
+        <a href="{% url 'add_automation' %}">+</a>
+    </div>
+</body>
+</html>

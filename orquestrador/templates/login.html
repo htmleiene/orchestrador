@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="login-body">
+    <div class="login-container">
+        <h2>Login</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="botao" type="submit">Entrar</button>
+        </form>
+        <div class="forgot-password">
+            <a href="{% url 'password_reset' %}">Esqueci minha senha</a>
+        </div>
+    </div>
+    <!-- Robô Dinâmico em SVG -->
+    <div class="robot-container" id="draggable-robot">
+        <svg viewBox="0 0 275 275" xmlns="http://www.w3.org/2000/svg">
+          <rect class="oval-top" x="12.5" y="12.5" width="100" height="100" rx="50" ry="50" stroke="#33334a" fill="transparent" stroke-width="25" />
+          <rect class="oval-right" x="162.5" y="12.5" width="100"  height="100" rx="50" ry="50" stroke="#33334a" fill="transparent" stroke-width="25" />
+          <rect class="oval-bot" x="12.5" y="162.5" width="250" height="100" rx="50" ry="50" stroke="#33334a" fill="transparent" stroke-width="25" />
+          <rect class="oval-left" x="12.5" y="12.5" width="100"  height="100" rx="50" ry="50" stroke="#33334a" fill="transparent" stroke-width="25" />
+        </svg>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
+    <script>
+        const tl = new TimelineMax({repeat: -1});
+
+        tl.add('oval-bot-shrink');
+        tl.to('.oval-bot', .5, { attr: { width: '100' }});
+
+        tl.add('oval-right-grow-and-shrink');
+        tl.to('.oval-right', .5, { attr: { height: 250 }})
+        .to('.oval-right', 0, { attr: {transform: 'scale(1,-1) translate(0,-275)'}})
+        .to('.oval-right', .5, { attr: { height: 100 }})
+
+        tl.add('oval-top-grow-and-shrink');
+        tl.to('.oval-top', .5, { attr: { width: 250 }})
+        .to('.oval-top', 0, { attr: {transform: 'scale(-1,1) translate(-275)'}})
+        .to('.oval-top', .5, { attr: { width: 100 }})
+
+        tl.add('oval-left-grow-and-shrink');
+        tl.to('.oval-bot', 0, { attr: { transform: 'rotate(180 62.5 212.5)' }})
+        .to('.oval-bot', 0.5, {attr: { height: 250 }})
+        .to('.oval-left', 0, {height: 250}) 
+        .to('.oval-left', 0, {autoAlpha: 1})
+        .to('.oval-bot', 0, {autoAlpha: 0})
+        .to('.oval-left', .5, {height: 100}) 
+
+        tl.add('oval-bot-grow')
+        tl.to('.oval-right', 0, {translate: '', attr: {transform: 'rotate(180 212.5 212.5) translate(0 150)'}})
+        .to('.oval-right', .5, {attr: {width: 250}})
+    </script>
+</body>
+</html>

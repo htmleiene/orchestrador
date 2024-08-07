@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Nova Automação</title>    
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <ul>
+            <li><a href="{% url 'index' %}">Dashboard</a></li>
+            <li><a href="{% url 'debug' %}">Depurar Automação</a></li>
+            <li><a href="{% url 'robots' %}">Robôs</a></li>
+            <li><a href="{% url 'logs' %}">Logs</a></li>
+        </ul>
+    </div>    
+    <div class="main-content">
+        <header>
+            <div class="user-profile">Perfil</div>
+        </header>
+        <div class="dashboard">
+            <h2>Adicionar Nova Automação</h2>
+            <form method="post" enctype="multipart/form-data" class="add_automation_form">
+                {% csrf_token %}
+                <label for="nome">Nome:</label>
+                <input type="text" id="nome" name="nome">
+            
+                <label for="script">Script (arquivo .py):</label>
+                <input type="file" id="script" name="script">
+            
+                <label for="frequencia">Frequência:</label>
+                <select id="frequencia" name="frequencia">
+                    <option value="Diário">Diário</option>
+                    <option value="Semanal">Semanal</option>
+                    <option value="Única Vez">Única Vez</option>
+                </select>
+            
+                <label for="horario_execucao">Horário de Execução:</label>
+                <input type="time" id="horario_execucao" name="horario_execucao">
+            
+                <button type="submit">Adicionar Automação</button>
+            </form> 
+            
+        </div>
+    </div>
+
+    <!-- Botão flutuante de adicionar automação -->
+    <div id="add-automation-btn">
+        <span>+</span>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            $('#add-automation-btn').click(function() {
+                $('.add_automation_form').submit();  // Substitua #form-automacao por .add_automation_form
+            });
+        });
+    </script>    
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Automações</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+    <h2>Lista de Automações</h2>
+    <div id="automacoes-list">
+        {% for automacao in automacoes %}
+        <div>
+            <h3>{{ automacao.nome }}</h3>
+            <p>{{ automacao.script }}</p>
+            <button onclick="executarAutomacao('{{ automacao.id }}')">Executar</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function executarAutomacao(id) {
+            fetch(`/executar_automacao/${id}/`)
+            .then(response => response.json())
+            .then(data => {
+                alert(data.mensagem);
+            })
+            .catch(error => {
+                console.error('Erro ao executar automação:', error);
+            });
+        }
+    </script>
+</body>
+</html>

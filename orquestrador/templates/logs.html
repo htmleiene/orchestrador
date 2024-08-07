@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs de Automação</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <<div class="sidebar">
+        <ul>
+            <li><a href="{% url 'index' %}">Dashboard</a></li>
+            <li><a href="{% url 'debug' %}">Depurar Automação</a></li>
+            <li><a href="{% url 'robots' %}">Robôs</a></li>
+            <li><a href="{% url 'logs' %}">Logs</a></li> <!-- Incluí o link para Logs -->
+        </ul>
+    </div>    
+    <div class="main-content">
+        <header>
+            <div class="user-profile">Perfil</div>
+        </header>
+        <div class="logs">
+            <h2>Logs de Automações</h2>
+            <div id="logs-content"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            $.get('{% url "logs_debug" %}', function(data) {
+                let logsDiv = $('#logs-content');
+                logsDiv.empty();
+                $.each(data.logs, function(index, log) {
+                    logsDiv.append('<div>' + log + '</div>');
+                });
+            });
+        });
+    </script>
+    <div id="add-automation-btn">
+        <a href="{% url 'add_automation' %}">+</a>
+    </div>
+</body>
+</html>

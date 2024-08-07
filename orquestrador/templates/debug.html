@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Depuração de Automações</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+    <div class="sidebar">
+        <ul>
+            <li><a href="{% url 'index' %}">Dashboard</a></li>
+            <li><a href="{% url 'debug' %}">Depurar Automação</a></li>
+            <li><a href="{% url 'robots' %}">Robôs</a></li>
+            <li><a href="{% url 'logs' %}">Logs</a></li> <!-- Incluí o link para Logs -->
+        </ul>
+    </div>    
+    <div class="main-content">
+        <header>
+            <input type="search" placeholder="Buscar...">
+            <div class="user-profile">
+                Perfil
+                <form id="logout-form" action="{% url 'logout' %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-door-open" viewBox="0 0 16 16">
+                            <path d="M8.5 10c-.276 0-.5-.448-.5-1s.224-1 .5-1 .5.448.5 1-.224 1-.5 1"/>
+                            <path d="M10.828.122A.5.5 0 0 1 11 .5V1h.5A1.5 1.5 0 0 1 13 2.5V15h1.5a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1H3V1.5a.5.5 0 0 1 .43-.495l7-1a.5.5 0 0 1 .398.117M11.5 2H11v13h1V2.5a.5.5 0 0 0-.5-.5M4 1.934V15h6V1.077z"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </header>        
+        
+        <h2>Depuração de Automações</h2>
+        
+        <form id="form-debug" method="post">
+            {% csrf_token %}
+            <label for="automacao">Selecionar Automação:</label>
+            <select id="automacao" name="automacao">
+                {% for automacao in automacoes %}
+                <option value="{{ automacao.nome }}">{{ automacao.nome }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" id="executar-debug">Executar para Depuração</button>
+        </form>               
+
+        <h3>Logs de Depuração</h3>
+        <div id="logs-depuracao" class="logs-container"></div>
+
+        <div id="add-automation-btn">
+            <a href="{% url 'add_automation' %}">+</a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            // Função para obter o token CSRF do cookie
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Verifica se este cookie corresponde ao nome procurado
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            const csrftoken = getCookie('csrftoken');
+
+            // Adicionar o token CSRF ao cabeçalho de cada requisição Ajax
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!/^((GET|HEAD|OPTIONS|TRACE)$)/i.test(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+
+            // Seu código para executar o debug
+            $('#executar-debug').click(function(){
+                let automacao = $('#automacao').val();
+                $.post('{% url "executar_debug" %}', { nome: automacao }, function(data) {
+                    alert(data.status);
+                });
+            });
+        });
+
+    </script>
+</body>
+</html>
